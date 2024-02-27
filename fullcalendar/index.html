@@ -1,42 +1,101 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-	</head>
-	<body>
-		<div id="calendar"/>
-	</body>
+
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="wrapper">
+    <button onclick="openEventCreator();">create an event</button>
+    <button onclick="localStorage.clear();">clear events</button>
+    <div class="popup">
+      <button onclick="closeEventCreator()">Close</button>
+      <div>
+        <label>
+          <p>Name of the event</p>
+          <input id="name" type="text">
+        </label>
+      </div>
+      <div>
+        <label>
+          <p>Choose date</p>
+          <input id="date" type="datetime-local">
+          <button>clear</button>
+        </label>
+      </div>
+      <button onclick="addEvent()">Submit</button>
+    </div>
+    <div id="calendar" />
+  </div>
+</body>
+
 </html>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  var calendarEl = document.getElementById('calendar');
-  var calendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: 'dayGridMonth',		
-    headerToolbar: {
-      center: 'addEventButton'
-    },
-    customButtons: {
-      addEventButton: {
-        text: 'add event...',
-        click: function() {
-          var dateStr = prompt('Enter a date in YYYY-MM-DD format');
-          var date = new Date(dateStr + 'T00:00:00'); // will be in local time
+  var calendar
+  document.addEventListener('DOMContentLoaded', function () {
+    var calendarEl = document.getElementById('calendar');
+    calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+    });
+    calendar.render();
+    addThoseEvents();
+  });
 
-          if (!isNaN(date.valueOf())) { // valid?
-            calendar.addEvent({
-              title: 'dynamic event',
-              start: date,
-              allDay: true
-            });
-            alert('Great. Now, update your database...');
-          } else {
-            alert('Invalid date.');
-          }
-        }
+  function openEventCreator(params) {
+    const el = document.querySelector(".popup");
+    el.style.opacity = "1";
+    el.style.pointerEvents = "fill";
+  }
+
+  function closeEventCreator(params) {
+    const el = document.querySelector(".popup");
+    el.style.opacity = "0";
+    el.style.pointerEvents = "none";
+  }
+
+  function addEvent() {
+    const events = parseLocalItems();
+    let date = document.querySelector("#date");
+    let name = document.querySelector("#name");
+    let newArr;
+    const event = {
+      title: name.value,
+      start: date.value,
+      allDay: true
+    };
+    if (events) {
+      newArr = Array.from(events);
+      newArr.push(event);
+    } else {
+      newArr = []
+      newArr.push(event);
+    }
+    calendar.addEvent(event);
+    // localStorage.setItem("events");
+    localStorage.setItem("events", JSON.stringify(newArr));
+    console.log(events);
+  }
+
+  function addThoseEvents(params) {
+    const events = parseLocalItems();
+    if (events) {
+      for (let i = 0; i < events.length; i++) {
+        calendar.addEvent(events[i])
       }
     }
-  });
-  calendar.render();
-});
+  }
+
+  function parseLocalItems() {
+    const events = localStorage.getItem("events");
+    console.log("events", JSON.parse(events));
+    if (events) {
+      console.log(JSON.parse(events));
+      return JSON.parse(events)
+    } else {
+      null;
+    }
+  }
 </script>
